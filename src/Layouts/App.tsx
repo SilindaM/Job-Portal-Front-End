@@ -1,31 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Vacancy from '../Models/Entities/Vacancy';
-import { Header, List } from 'semantic-ui-react';
-import { NavBar } from '../Components/NavBar';
+import { Container, Header, List } from 'semantic-ui-react';
+import { NavBar } from '../Components/Common/NavBar';
+import { CategoryDashboard } from '../Components/Categories/CategoryDashboard';
+import Category from '../Models/Entities/Category';
 
 
-const apiEndpoint = 'https://localhost:7182/Vacancy';
+
+const apiEndpoint = 'https://localhost:7182/Category';
 
 function App() {
-  const  [vacancies,setActivities] =useState<Vacancy[]>([]); 
+  const  [categories,setCategories] =useState<Category[]>([]); 
+ const [selectedCategory,setSelectedCategory] = useState<Category | undefined>(undefined);
+ const [editMode,setEditMode]= useState(false);
+
    useEffect(()=>{
     axios.get(apiEndpoint).then(response=>{
-      setActivities(response.data)
+      setCategories(response.data)
     })
   },[])
+
+  function handleSelectedCategory(id:number){
+      setSelectedCategory(categories.find(x=>x.id===id));
+  }
+  function handleCancelCatetegory(){
+     setSelectedCategory(undefined);
+  }
+  function handleFormOpen(id?:number){
+      id? handleSelectedCategory(id): handleCancelCatetegory();
+      setEditMode(true);
+  }
+  function handleFormClose(){
+    setEditMode(false);
+  }
   return (
   <>
-     <NavBar/>
-      <List>
-        {
-          vacancies.map((vacancy:Vacancy)=>(
-            <List.Item key={vacancy.id}>
-              {vacancy.vacancyTitle}
-            </List.Item>
-          ))
-        }
-      </List>
+     <NavBar openForm={handleFormOpen}/>
+     <Container>
+      <CategoryDashboard categories={categories} 
+      selectCategory={handleSelectedCategory}
+      cancelSelectedCategory={handleCancelCatetegory}
+      selectedCategory={selectedCategory}
+      editMode={editMode}
+      openForm={handleFormOpen}
+      closeForm={handleFormClose} />
+     </Container>
   </>
   );
 }
